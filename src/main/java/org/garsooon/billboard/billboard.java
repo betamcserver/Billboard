@@ -1,16 +1,14 @@
 package org.garsooon.billboard;
 
 import org.bukkit.plugin.java.JavaPlugin;
-import org.garsooon.billboard.Economy.Method;
-import org.garsooon.billboard.Economy.Methods;
 import org.garsooon.billboard.commands.AdCommands;
 import org.garsooon.billboard.commands.BroadcastCommands;
 import org.garsooon.billboard.data.AdManager;
 import org.garsooon.billboard.data.AutoBroadcaster;
 import org.garsooon.billboard.data.ConfigManager;
+import org.garsooon.billboard.economy.RetroBridgeAccess;
 import org.garsooon.billboard.listeners.PlayerJoinListener;
-
-import static org.bukkit.Bukkit.getLogger;
+import org.retromc.retrobridge.bridge.economy.EconomyBridge;
 
 public class billboard extends JavaPlugin {
 
@@ -19,26 +17,27 @@ public class billboard extends JavaPlugin {
     private AutoBroadcaster autobroadcaster;
     private int broadcastTaskId;
     private int tickTaskId;
-    private Method economy;
+    private RetroBridgeAccess retroBridgeAccess;
 
     @Override
     public void onEnable() {
         configManager = new ConfigManager(this);
         configManager.loadConfig();
 
-        getLogger().info("[Billboard] has been enabled!");
-
-        boolean economyLoaded = Methods.setMethod(getServer().getPluginManager());
-        if (!economyLoaded || Methods.getMethod() == null) {
-            getLogger().severe("[Billboard] No compatible economy plugin found! Disabling plugin.");
+        retroBridgeAccess = new RetroBridgeAccess();
+        if (!retroBridgeAccess.isAvailable()) {
+            getLogger().severe("Billboard requires RetroBridge to function.");
             getServer().getPluginManager().disablePlugin(this);
             return;
         }
 
-        this.economy = Methods.getMethod();
-        getLogger().info("[Billboard] Economy method loaded: " + economy.getName() + " v" + economy.getVersion());
+        if (getEconomyBridge() == null) {
+            getLogger().severe("No compatible economy plugin found! Disabling plugin.");
+            getServer().getPluginManager().disablePlugin(this);
+            return;
+        }
 
-        adManager = new AdManager(this, configManager, economy);
+        adManager = new AdManager(this, configManager);
         adManager.loadData();
 
         AdCommands adCommands = new AdCommands(this, adManager, configManager);
@@ -59,10 +58,12 @@ public class billboard extends JavaPlugin {
         tickTaskId = getServer().getScheduler().scheduleSyncRepeatingTask(this, () -> adManager.removeExpiredAds(getLogger()), 6000L, 6000L);
 
         // Start broadcast task for server broadcasts
-        autobroadcaster = new AutoBroadcaster(this, configManager);
+        autobroadcaster = new AutoBroadcaster(this);
         autobroadcaster.start();
 
         getCommand("broadcast").setExecutor(new BroadcastCommands(autobroadcaster));
+
+        getLogger().info("Billboard has been enabled!");
     }
 
     @Override
@@ -75,7 +76,7 @@ public class billboard extends JavaPlugin {
         }
 
         adManager.saveData();
-        getLogger().info("[Billboard] has been disabled!");
+        getLogger().info("Billboard has been disabled!");
     }
 
     public AdManager getAdManager() {
@@ -90,5 +91,7 @@ public class billboard extends JavaPlugin {
         return autobroadcaster;
     }
 
-    public Method getEconomy() {return economy;}
+    public EconomyBridge getEconomyBridge() {
+        return retroBridgeAccess.getEconomyBridge();
+    }
 }

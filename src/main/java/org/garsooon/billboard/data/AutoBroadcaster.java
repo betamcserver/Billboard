@@ -4,7 +4,11 @@ import org.bukkit.ChatColor;
 import org.garsooon.billboard.billboard;
 import org.yaml.snakeyaml.Yaml;
 
-import java.io.*;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -14,15 +18,13 @@ import java.util.Map;
 public class AutoBroadcaster {
 
     private final billboard plugin;
-    private final ConfigManager configManager;
     private final File broadcastFile;
     private List<String> messages;
     private int currentMessageIndex = 0;
     private int taskId = -1;
 
-    public AutoBroadcaster(billboard plugin, ConfigManager configManager) {
+    public AutoBroadcaster(billboard plugin) {
         this.plugin = plugin;
-        this.configManager = configManager;
         this.messages = new ArrayList<>();
         this.broadcastFile = new File(plugin.getDataFolder(), "broadcasts.yml");
 
@@ -48,9 +50,9 @@ public class AutoBroadcaster {
 
                 saveYamlFile(broadcastFile, data);
 
-                plugin.getServer().getLogger().info("[Billboard] Created default broadcasts.yml file");
+                plugin.getLogger().info("Created default broadcasts.yml file");
             } catch (IOException e) {
-                plugin.getServer().getLogger().severe("[Billboard] Could not create broadcasts.yml!");
+                plugin.getLogger().severe("Could not create broadcasts.yml!");
                 e.printStackTrace();
             }
         }
@@ -58,7 +60,7 @@ public class AutoBroadcaster {
 
     public void loadBroadcasts() {
         if (!broadcastFile.exists()) {
-            plugin.getServer().getLogger().warning("[Billboard] broadcasts.yml not found!");
+            plugin.getLogger().warning("broadcasts.yml not found!");
             return;
         }
 
@@ -80,10 +82,10 @@ public class AutoBroadcaster {
                         }
                     }
                 }
-                plugin.getServer().getLogger().info("[Billboard] Loaded " + messages.size() + " broadcast messages");
+                plugin.getLogger().info("Loaded " + messages.size() + " broadcast messages");
             }
         } catch (IOException e) {
-            plugin.getServer().getLogger().severe("[Billboard] Could not load broadcasts.yml!");
+            plugin.getLogger().severe("Could not load broadcasts.yml!");
             e.printStackTrace();
         }
     }
@@ -93,12 +95,12 @@ public class AutoBroadcaster {
         loadBroadcasts();
         currentMessageIndex = 0;
         start();
-        plugin.getServer().getLogger().info("[Billboard] Broadcasts reloaded!");
+        plugin.getLogger().info("Broadcasts reloaded!");
     }
 
     public void start() {
         if (messages.isEmpty()) {
-            plugin.getServer().getLogger().warning("[Billboard] No broadcast messages configured in broadcasts.yml!");
+            plugin.getLogger().warning("No broadcast messages configured in broadcasts.yml!");
             return;
         }
 
@@ -112,14 +114,14 @@ public class AutoBroadcaster {
                 intervalTicks
         );
 
-        plugin.getServer().getLogger().info("[Billboard] AutoBroadcaster started with " + messages.size() + " messages (interval: " + interval + "s)");
+        plugin.getLogger().info("AutoBroadcaster started with " + messages.size() + " messages (interval: " + interval + "s)");
     }
 
     public void stop() {
         if (taskId != -1) {
             plugin.getServer().getScheduler().cancelTask(taskId);
             taskId = -1;
-            plugin.getServer().getLogger().info("[Billboard] AutoBroadcaster stopped");
+            plugin.getLogger().info("AutoBroadcaster stopped");
         }
     }
 
@@ -195,7 +197,7 @@ public class AutoBroadcaster {
             newData.put("messages", new ArrayList<>(messages));
             saveYamlFile(broadcastFile, newData);
         } catch (IOException e) {
-            plugin.getServer().getLogger().severe("[Billboard] Could not save broadcasts.yml!");
+            plugin.getLogger().severe("Could not save broadcasts.yml!");
             e.printStackTrace();
         }
     }
@@ -217,7 +219,7 @@ public class AutoBroadcaster {
                 }
             }
         } catch (IOException e) {
-            plugin.getServer().getLogger().warning("[Billboard] Could not read interval from broadcasts.yml, using default 300s");
+            plugin.getLogger().warning("Could not read interval from broadcasts.yml, using default 300s");
         }
 
         return 300;
@@ -247,7 +249,7 @@ public class AutoBroadcaster {
 
             writer.close();
         } catch (IOException e) {
-            plugin.getServer().getLogger().severe("[Billboard] Could not save " + file.getName() + "!");
+            plugin.getLogger().severe("Could not save " + file.getName() + "!");
             e.printStackTrace();
         }
     }

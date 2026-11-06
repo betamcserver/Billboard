@@ -1,12 +1,14 @@
 package org.garsooon.billboard.data;
 
 import org.garsooon.billboard.billboard;
+import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
 
-import java.io.*;
-import java.util.ArrayList;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class ConfigManager {
@@ -21,10 +23,6 @@ public class ConfigManager {
     private int maxDurationDays = 30;
     private int maxMessageLength = 100;
     private double costPerDay = 25.0;
-
-    // AutoBroadcaster settings
-    private int autobroadcastInterval = 300;
-    private List<String> autobroadcastMessages = new ArrayList<>();
 
     public ConfigManager(billboard plugin) {
         this.plugin = plugin;
@@ -57,10 +55,7 @@ public class ConfigManager {
         maxMessageLength = getInt("max-message-length", maxMessageLength);
         costPerDay = getDouble(costPerDay);
 
-        autobroadcastInterval = getInt("autobroadcast.interval", autobroadcastInterval);
-        autobroadcastMessages = getStringList(getDefaultAutobroadcastMessages());
-
-        plugin.getServer().getLogger().info("[Billboard] Configuration loaded successfully");
+        plugin.getLogger().info("Configuration loaded successfully");
     }
 
     private void createDefaultConfig() {
@@ -70,23 +65,8 @@ public class ConfigManager {
         config.put("max-message-length", maxMessageLength);
         config.put("cost-per-day", costPerDay);
 
-        Map<String, Object> autobroadcast = new HashMap<>();
-        autobroadcast.put("interval", autobroadcastInterval);
-        autobroadcast.put("messages", getDefaultAutobroadcastMessages());
-        config.put("autobroadcast", autobroadcast);
-
         saveYamlFile(configFile, config);
-        plugin.getServer().getLogger().info("[Billboard] Created default config.yml");
-    }
-
-    private List<String> getDefaultAutobroadcastMessages() {
-        List<String> defaults = new ArrayList<>();
-        defaults.add("&cIf your seeing this, The server owners forgot to set up broadcasts *skull*");
-        defaults.add("&eWelcome to the server! Type /help for commands.");
-        defaults.add("&bDon't forget to vote for the server daily!");
-        defaults.add("&aVisit our website at example.com");
-        defaults.add("&6Use /buyad to advertise your shop or service!");
-        return defaults;
+        plugin.getLogger().info("Created default config.yml");
     }
 
     private String getString(String defaultValue) {
@@ -109,30 +89,6 @@ public class ConfigManager {
         return defaultValue;
     }
 
-    private List<String> getStringList(List<String> defaultValue) {
-        String[] keys = "autobroadcast.messages".split("\\.");
-        Object current = config;
-
-        for (String k : keys) {
-            if (current instanceof Map) {
-                current = ((Map<?, ?>) current).get(k);
-            } else {
-                return defaultValue;
-            }
-        }
-
-        if (current instanceof List) {
-            List<String> result = new ArrayList<>();
-            for (Object item : (List<?>) current) {
-                if (item instanceof String) {
-                    result.add((String) item);
-                }
-            }
-            return result;
-        }
-        return defaultValue;
-    }
-
     public int getBroadcastInterval() {
         return broadcastInterval;
     }
@@ -147,14 +103,6 @@ public class ConfigManager {
 
     public int getMaxMessageLength() {
         return maxMessageLength;
-    }
-
-    public int getAutobroadcastInterval() {
-        return autobroadcastInterval;
-    }
-
-    public List<String> getAutobroadcastMessages() {
-        return new ArrayList<>(autobroadcastMessages);
     }
 
     ///util
@@ -176,7 +124,7 @@ public class ConfigManager {
             return new HashMap<>();
 
         } catch (IOException e) {
-            plugin.getServer().getLogger().severe("[Billboard] Could not load " + file.getName() + "!");
+            plugin.getLogger().severe("Could not load " + file.getName() + "!");
             e.printStackTrace();
             return new HashMap<>();
         }
@@ -184,12 +132,14 @@ public class ConfigManager {
 
     public void saveYamlFile(File file, Map<String, Object> data) {
         try {
-            Yaml yaml = new Yaml();
+            DumperOptions options = new DumperOptions();
+            options.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
+            Yaml yaml = new Yaml(options);
             FileWriter writer = new FileWriter(file);
             yaml.dump(data, writer);
             writer.close();
         } catch (IOException e) {
-            plugin.getServer().getLogger().severe("[Billboard] Could not save " + file.getName() + "!");
+            plugin.getLogger().severe("Could not save " + file.getName() + "!");
             e.printStackTrace();
         }
     }
@@ -204,5 +154,7 @@ public class ConfigManager {
         return defaultValue;
     }
 
-    public double getCostPerDay() {return costPerDay; }
+    public double getCostPerDay() {
+        return costPerDay;
+    }
 }

@@ -2,19 +2,19 @@ package org.garsooon.billboard.data;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Server;
-import org.bukkit.World;
 import org.bukkit.entity.Player;
-import org.garsooon.billboard.Economy.Method;
 import org.garsooon.billboard.billboard;
-import org.garsooon.billboard.data.ActiveAd;
-import org.garsooon.billboard.data.AdRequest;
-import org.garsooon.billboard.data.ConfigManager;
 
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Queue;
+import java.util.Random;
 import java.util.logging.Logger;
-
-import static org.bukkit.Bukkit.getLogger;
 
 public class AdManager {
 
@@ -23,13 +23,11 @@ public class AdManager {
     private List<ActiveAd> activeAds;
     private Random random;
     private File dataFile;
-    private final Method economy;
     private final billboard plugin;
 
-    public AdManager(billboard plugin, ConfigManager configManager, Method economy) {
+    public AdManager(billboard plugin, ConfigManager configManager) {
         this.plugin = plugin;
         this.configManager = configManager;
-        this.economy = economy;
         this.pendingAds = new LinkedList<>();
         this.activeAds = new ArrayList<>();
         this.random = new Random();
@@ -45,7 +43,7 @@ public class AdManager {
         Map<String, Object> data = configManager.loadYamlFile(dataFile);
 
         if (data.isEmpty()) {
-            getLogger().info("No existing ad data found");
+            plugin.getLogger().info("No existing ad data found");
             return;
         }
 
@@ -76,7 +74,7 @@ public class AdManager {
             }
         }
 
-        getLogger().info("Loaded " + pendingAds.size() + " pending ads and " + activeAds.size() + " active ads");
+        plugin.getLogger().info("Loaded " + pendingAds.size() + " pending ads and " + activeAds.size() + " active ads");
     }
 
     public void saveData() {
@@ -97,7 +95,7 @@ public class AdManager {
         data.put("active-ads", activeList);
 
         configManager.saveYamlFile(dataFile, data);
-        getLogger().info("Saved " + pendingAds.size() + " pending ads and " + activeAds.size() + " active ads");
+        plugin.getLogger().info("Saved " + pendingAds.size() + " pending ads and " + activeAds.size() + " active ads");
     }
 
     public void addPendingAd(AdRequest request) {
@@ -122,14 +120,13 @@ public class AdManager {
 
     public boolean submitAd(Player player, String message, int durationDays) {
         double totalCost = configManager.getCostPerDay() * durationDays;
-        World world = player.getWorld();
 
-        if (!economy.hasEnough(player.getName(), totalCost, world)) {
+        if (!plugin.getEconomyBridge().has(player.getUniqueId(), totalCost)) {
             return false;
         }
 
-        economy.withdrawPlayer(player.getName(), totalCost, world);
-        pendingAds.add(new AdRequest(player.getName(), message, durationDays));
+        plugin.getEconomyBridge().withdraw(player.getUniqueId(), totalCost);
+        pendingAds.add(new AdRequest(player.getUniqueId(), player.getName(), message, durationDays));
         saveData();
         return true;
     }
@@ -144,9 +141,7 @@ public class AdManager {
     public void denyAd(AdRequest request) {
         double refund = configManager.getCostPerDay() * request.getDurationDays();
 
-        World world = plugin.getServer().getWorlds().get(0);
-        economy.depositPlayer(request.getPlayerName(), refund, world);
-
+        plugin.getEconomyBridge().deposit(request.getPlayerId(), refund);
         pendingAds.remove(request);
         saveData();
     }

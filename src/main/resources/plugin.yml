@@ -1,8 +1,9 @@
 name: Billboard
-version: 1.0.3
+version: ${project.version}
 author: Garsooon
 main: org.garsooon.billboard.billboard
-softdepend: [Essentials, Fundamentals, ZCore]
+depend:
+  - RetroBridge
 
 commands:
   buyad:

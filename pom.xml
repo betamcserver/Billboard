@@ -6,77 +6,35 @@
 
     <groupId>org.garsooon</groupId>
     <artifactId>billboard</artifactId>
-    <version>1.0.3</version>
+    <version>1.1.0</version>
 
     <packaging>jar</packaging>
 
     <name>Billboard</name>
-    <description>A plugin for beta 1.7.3 minecraft and noone reads this who cares read the plugin name ffs kinda self explanatory</description>
+    <description>A simple Autobroadcaster and chat-based advertisement plugin for Minecraft Beta 1.7.3</description>
 
     <properties>
-        <maven.compiler.source>8</maven.compiler.source>
-        <maven.compiler.target>8</maven.compiler.target>
+        <java.version>25</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
     <repositories>
         <repository>
-            <id>johnymuffin-nexus-releases</id>
-            <url>https://repository.johnymuffin.com/repository/maven-public/</url>
-        </repository>
-        <repository>
-            <id>johnymuffin</id>
-            <url>https://repository.johnymuffin.com</url>
-        </repository>
-
-        <repository>
-            <id>johnymuffin-nexus-snapshots</id>
-            <url>https://repository.johnymuffin.com/repository/maven-snapshots/</url>
-            <releases>
-                <enabled>false</enabled>
-            </releases>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
+            <id>legacyminecraft-nexus</id>
+            <url>https://repository.legacyminecraft.com/repository/maven-public/</url>
         </repository>
     </repositories>
 
     <dependencies>
         <dependency>
-            <groupId>com.legacyminecraft.poseidon</groupId>
-            <artifactId>poseidon-craftbukkit</artifactId>
-            <version>1.1.8</version>
+            <groupId>com.legacyminecraft</groupId>
+            <artifactId>poseidon-api</artifactId>
+            <version>2.0.0-rc-2</version>
         </dependency>
-
         <dependency>
-            <groupId>com.earth2me</groupId>
-            <artifactId>essentials</artifactId>
-            <version>2.6.8</version>
-            <scope>system</scope>
-            <systemPath>${project.basedir}/lib/essentials.jar</systemPath>
-        </dependency>
-
-
-        <dependency>
-            <groupId>com.nijikokun.bukkit</groupId>
-            <artifactId>Permissions</artifactId>
-            <version>2.5</version>
-            <scope>system</scope>
-            <systemPath>${project.basedir}/lib/Permissions.jar</systemPath>
-        </dependency>
-
-        <dependency>
-            <groupId>com.johnymuffin.beta</groupId>
-            <artifactId>fundamentals</artifactId>
-            <version>1.0.6</version>
-        </dependency>
-
-        <dependency>
-            <groupId>me.zavdav</groupId>
-            <artifactId>ZCore</artifactId>
-            <version>0.22.1</version>
-            <scope>system</scope>
-            <systemPath>${project.basedir}/lib/ZCore.jar</systemPath>
+            <groupId>org.retromc</groupId>
+            <artifactId>RetroBridge</artifactId>
+            <version>1.1.1</version>
         </dependency>
     </dependencies>
 
@@ -85,15 +43,14 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.8.1</version>
+                <version>3.16.0</version>
                 <configuration>
-                    <source>8</source>
-                    <target>8</target>
+                    <release>${java.version}</release>
+                    <encoding>${project.build.sourceEncoding}</encoding>
                 </configuration>
             </plugin>
 
         </plugins>
-
         <resources>
             <resource>
                 <directory>src/main/resources</directory>
